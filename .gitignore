@@ -1,0 +1,24 @@
+# Ambientes virtuais
+.venv/
+.venv-*
+venv/
+
+# Datasets
+dataset/
+
+# Arquivos de cache do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos do Jupyter Notebook
+.ipynb_checkpoints
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de IDEs
+.idea/
+.vscode/
