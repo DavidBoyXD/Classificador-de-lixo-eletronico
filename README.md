@@ -14,18 +14,37 @@ Este projeto é uma aplicação de linha de comando (CLI) que utiliza Visão Com
 
 ---
 
-## Ambiente de Desenvolvimento (Windows)
+## Ambiente de Desenvolvimento Recomendado: Windows + WSL
 
-Para evitar problemas de permissão entre o Windows e o Linux, a forma **altamente recomendada** de trabalhar neste projeto é usando o **WSL (Windows Subsystem for Linux)** com o **Visual Studio Code**.
+Para garantir que o projeto funcione sem erros de permissão de arquivo entre Windows e Linux, a forma correta e profissional de trabalhar é usando o Visual Studio Code conectado diretamente ao seu ambiente WSL.
 
-1.  **Instale a Extensão:** No VS Code, instale a extensão oficial da Microsoft chamada **[Remote - WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)**.
+### Como Funciona?
 
-2.  **Abra o Projeto no WSL:**
-    - Abra seu terminal Ubuntu (ou outra distro WSL).
-    - Navegue até a pasta onde você clonou este projeto.
-    - Dentro da pasta, execute o comando: `code .`
+Ao invés de abrir os arquivos do Linux no VS Code "rodando" no Windows, nós faremos o VS Code "rodar" dentro do próprio Linux. A janela que você vê no Windows funcionará como um controle remoto. Isso é feito através da extensão oficial da Microsoft e evita todos os conflitos de permissão.
 
-    Isso abrirá o VS Code conectado diretamente ao ambiente Linux. Você saberá que funcionou se vir **"WSL: Ubuntu"** no canto inferior esquerdo do VS Code.
+### Passos para Conexão
+
+1.  **Instale a Extensão:** Dentro do VS Code, vá ao menu de Extensões (ícone de blocos na lateral), procure por `Remote - WSL` e instale a extensão criada pela Microsoft.
+
+2.  **Abra o Projeto (Escolha uma opção):**
+
+    *   **Opção A (Recomendada): Via Terminal**
+        1.  Abra seu terminal do Ubuntu (pelo Menu Iniciar do Windows).
+        2.  Navegue até a pasta onde você clonou o projeto (ex: `cd /caminho/ate/Classificador-de-lixo-eletronico`).
+        3.  Dentro da pasta, digite o comando:
+            ```bash
+            code .
+            ```
+        4.  Isso abrirá uma nova janela do VS Code, já conectada ao WSL.
+
+    *   **Opção B: Via Interface do VS Code**
+        1.  Abra o VS Code normalmente no Windows.
+        2.  Clique no botão verde no canto inferior esquerdo da janela (geralmente mostra `><`).
+        3.  No menu que aparece no topo, selecione **"Conectar ao WSL"** (ou *Connect to WSL*).
+        4.  Uma nova janela do VS Code será aberta, agora conectada ao WSL.
+        5.  Nesta nova janela, vá em `Arquivo > Abrir Pasta...` (`File > Open Folder...`) e navegue até a pasta do seu projeto dentro do sistema de arquivos do Linux (ex: `/home/seu_usuario/Classificador-de-lixo-eletronico`).
+
+3.  **Verificação:** Em ambos os casos, confirme que a conexão foi bem-sucedida olhando para o canto inferior esquerdo do VS Code. Deverá haver um botão verde indicando **"WSL: Ubuntu"** (ou o nome da sua distribuição). A partir deste ponto, todo comando executado no terminal integrado do VS Code (`Ctrl+'`) será executado dentro do Linux, como esperado.
 
 ---
 
