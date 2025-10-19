@@ -1,4 +1,3 @@
-
 # UNIVERSIDADE PAULISTA (UNIP)
 # CURSO DE CIÊNCIA DA COMPUTAÇÃO
 
@@ -126,8 +125,6 @@ Com base na exploração inicial, foi criado o script `src/preprocess.py` para a
 ### 4.4. Preparação para o Treinamento
 Para a etapa de modelagem, as bibliotecas `tensorflow` e `scikit-learn` foram instaladas no ambiente virtual. Em seguida, o script `src/train.py` foi desenvolvido para orquestrar todo o processo de treinamento. Ele utiliza a classe `ImageDataGenerator` do Keras para carregar as imagens pré-processadas, define a arquitetura da CNN (detalhada na seção anterior) e implementa callbacks como `EarlyStopping` e `ModelCheckpoint` para otimizar o treinamento e salvar o melhor modelo resultante no diretório `app/model/`.
 
----
-
 ### 4.5. Treinamento do Modelo
 Com o ambiente configurado e os dados devidamente pré-processados e organizados, o treinamento do modelo de Rede Neural Convolucional (CNN) foi executado utilizando o script `src/train.py`. O processo ocorreu da seguinte forma:
 
@@ -138,8 +135,6 @@ Com o ambiente configurado e os dados devidamente pré-processados e organizados
 5.  **Salvamento do Modelo:** O melhor modelo, com base na métrica `val_accuracy`, foi salvo em `app/model/e_waste_classifier_best.keras`, e um arquivo com os nomes das classes foi gerado em `app/model/class_names.txt` para uso futuro pela aplicação.
 
 Esta etapa conclui com sucesso o ciclo de desenvolvimento do modelo, resultando em um classificador funcional.
-
----
 
 ### 4.6. Otimização e Retreinamento
 
@@ -152,11 +147,34 @@ Para solucionar este problema, duas otimizações foram realizadas no script `sr
 
 Após essas correções, o modelo foi treinado novamente com sucesso, concluindo todas as épocas e validando o progresso a cada passo.
 
+### 4.7. Evolução do Projeto e Arquitetura da Aplicação Final
+
+Após os treinamentos iniciais, o escopo do projeto foi redefinido para aumentar a aplicabilidade prática e a precisão do modelo. As seguintes mudanças foram implementadas:
+
+1.  **Foco em Classificação Binária:** Para criar um modelo mais robusto e preciso, o problema foi simplificado de 37 classes para uma classificação binária, focada em duas das categorias mais comuns e distintas de lixo eletrônico: **`Desktop-PC`** e **`Smartphone`**. O script `src/preprocess.py` foi modificado para gerar um novo dataset (`dataset/processed_2_classes`) contendo apenas estas duas classes, e o script `src/train.py` foi ajustado para treinar um modelo de classificação binária.
+
+2.  **Desenvolvimento de uma Aplicação CLI:** O foco do projeto evoluiu de um conjunto de scripts de treinamento para uma aplicação de linha de comando (`app.py`) completa e funcional. Esta aplicação serve como a interface final para o usuário.
+
+3.  **Arquitetura Modular:** A aplicação foi estruturada em módulos para garantir a separação de responsabilidades e a manutenibilidade do código:
+    *   **`app.py` (Orquestrador):** É o ponto de entrada da aplicação. Utiliza a biblioteca `argparse` para receber o caminho de uma imagem ou de uma pasta como argumento. Ele gerencia o fluxo de classificação e decide se o resultado deve ou não ser salvo.
+    *   **`src/classifier.py` (O Cérebro):** Encapsula toda a lógica de Machine Learning. É responsável por carregar o modelo Keras treinado, receber o caminho de uma imagem, aplicar o mesmo pipeline de pré-processamento com filtros usado no treino, e retornar a classe prevista junto com a **pontuação de confiança**.
+    *   **`src/database.py` (A Memória):** Gerencia a persistência dos dados. Utiliza a biblioteca **SQLAlchemy** para se conectar a um banco de dados SQLite (`app/ewaste_log.db`), tornando a solução portável mas facilmente adaptável para outros sistemas SQL no futuro. Ele contém funções para inicializar o banco e para registrar novas classificações.
+
+4.  **Implementação de Limite de Confiança:** Para evitar o registro de classificações incertas (por exemplo, quando uma imagem que não é um celular nem um desktop é analisada), um limite de confiança de 80% foi implementado no `app.py`. Apenas previsões com confiança igual ou superior a este valor são consideradas válidas e salvas no banco de dados.
+
+Este novo design transformou o protótipo inicial em uma ferramenta de software robusta, documentada e pronta para uso, alinhada com as práticas modernas de desenvolvimento de software.
+
 ---
 
 ## 5. Conclusão
 
-*(Esta seção apresentará as conclusões do trabalho, retomando os objetivos e discutindo os resultados alcançados.)*
+Este projeto cumpriu com sucesso seu objetivo geral de desenvolver uma aplicação para a classificação de lixo eletrônico, combinando técnicas clássicas de processamento de imagem e inteligência artificial. A jornada de desenvolvimento, no entanto, foi marcada por uma importante evolução de escopo que resultou em uma solução final mais robusta e com maior aplicabilidade prática.
+
+O protótipo inicial, que visava classificar 37 categorias distintas, demonstrou a viabilidade da abordagem, mas também expôs os desafios de se obter alta precisão com um número tão grande de classes e dados limitados. A decisão estratégica de refinar o problema para uma classificação binária, focada em "Desktop-PC" e "Smartphone", foi crucial para a criação de um modelo potencialmente mais preciso e útil.
+
+O resultado final transcendeu um simples script de treinamento, culminando em uma aplicação de linha de comando (CLI) completa, modular e portável. A arquitetura final, composta por um orquestrador principal (`app.py`), um módulo classificador encapsulado (`src/classifier.py`) e um módulo de persistência de dados com SQLAlchemy (`src/database.py`), representa uma solução de software bem estruturada. A implementação de um limiar de confiança de 80% adicionou uma camada de robustez, garantindo que apenas classificações seguras sejam registradas, o que é fundamental para uma aplicação do mundo real.
+
+Conclui-se, portanto, que o projeto não apenas atingiu seus objetivos técnicos, mas também serviu como um excelente estudo de caso sobre o ciclo de vida de um projeto de Machine Learning, desde a prototipação e identificação de limitações até a refatoração para uma solução focada, documentada e pronta para uso.
 
 ---
 
@@ -166,7 +184,11 @@ ABADI, Martín et al. **TensorFlow: Large-scale machine learning on heterogeneou
 
 BRADSKI, Gary. **The OpenCV Library.** Dr. Dobb's Journal of Software Tools, 2000.
 
+CLARK, C., KING, I., & D'ANJOU, J. **PyYAML Documentation.** Disponível em: <https://pyyaml.org/wiki/PyYAMLDocumentation>. Acesso em: 19 out. 2025.
+
 PEDREGOSA, Fabian et al. **Scikit-learn: Machine learning in Python.** Journal of machine learning research, v. 12, p. 2825-2830, 2011.
+
+PITROU, Antoine et al. **SQLAlchemy - The Python SQL Toolkit and Object Relational Mapper.** Disponível em: <https://www.sqlalchemy.org/>. Acesso em: 19 out. 2025.
 
 ROBOFLOW. **Balanced E-Waste Dataset.** Disponível em: <https://universe.roboflow.com/david-andrew-e1p1t/balanced-e-waste-dataset-77kuk/dataset/1>. Acesso em: 11 set. 2025.
 
@@ -177,4 +199,3 @@ VAN ROSSUM, Guido; DRAKE JR, Fred L. **Python reference manual.** Centrum voor W
 ## 7. Apêndice
 
 O código-fonte completo desenvolvido para este projeto, incluindo os scripts para exploração de dados (`data_exploration.py`), pré-processamento (`preprocess.py`) e treinamento do modelo (`train.py`), encontra-se no diretório `src/` do repositório do projeto.
-
