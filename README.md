@@ -24,7 +24,7 @@ Ao invés de abrir os arquivos do Linux no VS Code "rodando" no Windows, nós fa
 
 ### Passos para Conexão
 
-1.  **Instale a Extensão:** Dentro do VS Code, vá ao menu de Extensões (ícone de blocos na lateral), procure por `Remote - WSL` e instale a extensão criada pela Microsoft.
+1.  **Instale a Extensão:** Dentro do VS Code, vá ao menu de Extensões (ícone de blocos na lateral), procure por `WSL` e instale a extensão criada pela Microsoft.
 
 2.  **Abra o Projeto (Escolha uma opção):**
 
