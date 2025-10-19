@@ -1,23 +1,17 @@
-# Ambientes virtuais
+# Ignorar o ambiente virtual
 .venv/
-.venv-*
-venv/
+.venv-py310/
 
-# Datasets
+# Ignorar o dataset
+dataset/
 
-# Arquivos de cache do Python
+# Ignorar arquivos de cache do Python
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
 
-# Arquivos do Jupyter Notebook
-.ipynb_checkpoints
+# Ignorar arquivos de banco de dados SQLite
+*.db
+*.sqlite3
 
-# Arquivos de sistema
-.DS_Store
-Thumbs.db
-
-# Arquivos de IDEs
-.idea/
-.vscode/
+# Ignorar diretório de imagens de teste
+test_images/

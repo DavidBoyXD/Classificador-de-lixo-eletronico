@@ -1,75 +1,70 @@
+# -*- coding: utf-8 -*-
+
+# Referências:
+# TensorFlow/Keras ImageDataGenerator: https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
+# Keras Sequential Model: https://www.tensorflow.org/guide/keras/sequential_model
+# Callbacks (EarlyStopping, ModelCheckpoint): https://www.tensorflow.org/api_docs/python/tf/keras/callbacks
 
 import os
-import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Input
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-import yaml
 
-def create_model(input_shape, num_classes):
+def create_binary_classifier_model(input_shape):
     """
-    Cria um modelo de Rede Neural Convolucional (CNN) com a API Keras.
+    Cria um modelo de CNN otimizado para classificação binária (2 classes).
     """
     model = Sequential([
         Input(shape=input_shape),
-        # Camada Convolucional: extrai características (bordas, texturas)
-        # 32 filtros, kernel 3x3, função de ativação ReLU
         Conv2D(32, (3, 3), activation='relu'),
-        # Camada de Pooling: Reduz a dimensionalidade (down-sampling)
         MaxPooling2D((2, 2)),
-        
         Conv2D(64, (3, 3), activation='relu'),
         MaxPooling2D((2, 2)),
-        
         Conv2D(128, (3, 3), activation='relu'),
         MaxPooling2D((2, 2)),
-        
-        # Achatamento: Transforma o mapa de características 2D em um vetor 1D
         Flatten(),
-        
-        # Camada Densa (Totalmente Conectada): Camada de classificação
         Dense(128, activation='relu'),
-        # Dropout: Técnica de regularização para prevenir overfitting
         Dropout(0.5),
-        
-        # Camada de Saída: O número de neurônios é igual ao número de classes
-        # Ativação Softmax para problemas de classificação multiclasse
-        Dense(num_classes, activation='softmax')
+        # Para classificação binária, uma única unidade com ativação sigmoid é o padrão.
+        # A saída será um valor entre 0 e 1, representando a probabilidade de pertencer à classe '1'.
+        Dense(1, activation='sigmoid')
     ])
     
-    # Compila o modelo com o otimizador Adam, função de perda para classificação
-    # e métrica de acurácia.
+    # Compila o modelo com 'binary_crossentropy', otimizado para problemas de 2 classes.
     model.compile(optimizer='adam',
-                  loss='categorical_crossentropy',
+                  loss='binary_crossentropy',
                   metrics=['accuracy'])
     
     return model
 
 if __name__ == '__main__':
-    # --- Configurações ---
+    # --- Configurações para o Modelo de 2 Classes ---
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    PROCESSED_DATA_DIR = os.path.join(BASE_DIR, 'dataset', 'processed')
-    DATA_YAML_PATH = os.path.join(BASE_DIR, 'dataset', 'data.yaml')
+    PROCESSED_DATA_DIR = os.path.join(BASE_DIR, 'dataset', 'processed_2_classes')
     MODEL_OUTPUT_DIR = os.path.join(BASE_DIR, 'app', 'model')
     
-    IMG_SIZE = (224, 224)
-    BATCH_SIZE = 32 # Número de imagens a serem processadas em cada lote
-    EPOCHS = 20     # Número de vezes que o modelo verá todo o dataset de treino
+    # Nomes de arquivo para o novo modelo
+    NEW_MODEL_FILENAME = 'e_waste_classifier_2_classes_best.keras'
+    NEW_CLASS_NAMES_FILENAME = 'class_names_2.txt'
 
-    # --- Carregar Configurações do Dataset ---
-    try:
-        with open(DATA_YAML_PATH, 'r') as file:
-            data_config = yaml.safe_load(file)
-        NUM_CLASSES = data_config['nc']
-        CLASS_NAMES = data_config['names']
-    except (FileNotFoundError, KeyError) as e:
-        print(f"ERRO: Não foi possível ler o arquivo de configuração do dataset. {e}")
+    # As classes são lidas em ordem alfabética pelo ImageDataGenerator
+    CLASS_NAMES = ["Desktop-PC", "Smartphone"]
+    NUM_CLASSES = len(CLASS_NAMES)
+
+    IMG_SIZE = (224, 224)
+    BATCH_SIZE = 8  # Reduzido para evitar problemas de memória
+    EPOCHS = 25     # Aumentamos um pouco as épocas para o novo modelo
+
+    if not os.path.exists(PROCESSED_DATA_DIR) or not os.listdir(PROCESSED_DATA_DIR):
+        print(f"ERRO: O diretório de dados processados '{PROCESSED_DATA_DIR}' está vazio ou não existe.")
+        print("Por favor, execute o script 'src/preprocess.py' primeiro.")
         exit()
 
     # --- Geradores de Dados ---
-    # Cria um gerador de dados para o conjunto de treino com Data Augmentation
+    # Como as imagens já foram pré-processadas (filtros aplicados), o gerador
+    # só precisa normalizar os pixels (dividir por 255) e aplicar data augmentation.
     train_datagen = ImageDataGenerator(
         rescale=1./255,
         rotation_range=40,
@@ -81,14 +76,14 @@ if __name__ == '__main__':
         fill_mode='nearest'
     )
 
-    # Cria um gerador de dados para o conjunto de validação (apenas reescala)
     validation_datagen = ImageDataGenerator(rescale=1./255)
 
+    # O class_mode é 'binary' para problemas de 2 classes com loss 'binary_crossentropy'
     train_generator = train_datagen.flow_from_directory(
         os.path.join(PROCESSED_DATA_DIR, 'train'),
         target_size=IMG_SIZE,
         batch_size=BATCH_SIZE,
-        class_mode='categorical',
+        class_mode='binary',
         color_mode='grayscale'
     )
 
@@ -96,26 +91,23 @@ if __name__ == '__main__':
         os.path.join(PROCESSED_DATA_DIR, 'valid'),
         target_size=IMG_SIZE,
         batch_size=BATCH_SIZE,
-        class_mode='categorical',
+        class_mode='binary',
         color_mode='grayscale'
     )
 
     # --- Construção e Treinamento do Modelo ---
-    # O input_shape é (altura, largura, canais). Como é escala de cinza, temos 1 canal.
-    model = create_model(input_shape=(IMG_SIZE[0], IMG_SIZE[1], 1), num_classes=NUM_CLASSES)
-    model.summary() # Exibe um resumo da arquitetura do modelo
+    model = create_binary_classifier_model(input_shape=(IMG_SIZE[0], IMG_SIZE[1], 1))
+    model.summary()
 
-    # Callbacks para otimizar o treinamento
-    # EarlyStopping: para o treinamento se a performance não melhorar
-    early_stopping = EarlyStopping(monitor='val_accuracy', patience=3, restore_best_weights=True)
-    # ModelCheckpoint: salva o melhor modelo encontrado durante o treinamento
+    # --- Callbacks ---
+    early_stopping = EarlyStopping(monitor='val_accuracy', patience=5, restore_best_weights=True)
     model_checkpoint = ModelCheckpoint(
-        filepath=os.path.join(MODEL_OUTPUT_DIR, 'e_waste_classifier_best.keras'),
+        filepath=os.path.join(MODEL_OUTPUT_DIR, NEW_MODEL_FILENAME),
         save_best_only=True,
         monitor='val_accuracy'
     )
 
-    print("\nIniciando o treinamento do modelo...")
+    print("\nIniciando o treinamento do modelo de 2 classes...")
     history = model.fit(
         train_generator,
         epochs=EPOCHS,
@@ -124,11 +116,11 @@ if __name__ == '__main__':
     )
 
     print("\nTreinamento concluído.")
-    print(f"O melhor modelo foi salvo em: {os.path.join(MODEL_OUTPUT_DIR, 'e_waste_classifier_best.keras')}")
+    model_path = os.path.join(MODEL_OUTPUT_DIR, NEW_MODEL_FILENAME)
+    print(f"O melhor modelo foi salvo em: {model_path}")
 
     # --- Salvando os nomes das classes ---
-    # Salva os nomes das classes em um arquivo para uso posterior na aplicação
-    class_names_path = os.path.join(MODEL_OUTPUT_DIR, 'class_names.txt')
+    class_names_path = os.path.join(MODEL_OUTPUT_DIR, NEW_CLASS_NAMES_FILENAME)
     with open(class_names_path, 'w') as f:
         for class_name in CLASS_NAMES:
             f.write(f"{class_name}\n")
