@@ -1,6 +1,9 @@
+# Este arquivo lista as dependências do projeto.
+# Use o comando `pip install -r requirements.txt` em um ambiente virtual para instalá-las.
+
 tensorflow
-opencv-python-headless
-scikit-learn
+opencv-python
+SQLAlchemy
 PyYAML
-roboflow
-matplotlib
+numpy
+tqdm
