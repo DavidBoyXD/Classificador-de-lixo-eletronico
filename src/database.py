@@ -17,6 +17,7 @@ from sqlalchemy.ext.declarative import declarative_base
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Define o caminho para o arquivo do banco de dados SQLite dentro da pasta 'app'
 DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'app', 'ewaste_log.db')}"
+DB_PATH = os.path.join(BASE_DIR, 'app', 'ewaste_log.db')
 
 # --- Criação da Engine e Sessão ---
 

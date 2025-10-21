@@ -54,8 +54,8 @@ if __name__ == '__main__':
     NUM_CLASSES = len(CLASS_NAMES)
 
     IMG_SIZE = (224, 224)
-    BATCH_SIZE = 8  # Reduzido para evitar problemas de memória
-    EPOCHS = 25     # Aumentamos um pouco as épocas para o novo modelo
+    BATCH_SIZE = 32  # Reduzido para evitar problemas de memória
+    EPOCHS = 250    # Aumentamos um pouco as épocas para o novo modelo
 
     if not os.path.exists(PROCESSED_DATA_DIR) or not os.listdir(PROCESSED_DATA_DIR):
         print(f"ERRO: O diretório de dados processados '{PROCESSED_DATA_DIR}' está vazio ou não existe.")
