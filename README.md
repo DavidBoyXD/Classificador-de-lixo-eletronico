@@ -13,19 +13,33 @@ Gerar uma imagem final destacando o smartphone detectado.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 📁 Estrutura do Projeto
 project/
+
 │
+
 ├── app/
+
 │   └── detect_smartphone.py     # Script para rodar a detecção
+
 │
+
 ├── dataset/
+
 │   ├── train/                   # Imagens de treino
+
 │   ├── valid/                   # Imagens de validação
+
 │   └── data.yaml                # Configuração do dataset
+
 │
+
 ├── runs/                        # Saída do YOLO (modelos, logs, etc.)
+
 │
+
 ├── test_images/                 # Imagens para testar o modelo
+
 │
+
 └── results_detected/            # Imagens com smartphones destacados
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ⚙️ Requisitos
