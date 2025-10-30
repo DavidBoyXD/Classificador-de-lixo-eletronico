@@ -1,6 +1,7 @@
 📱 Detecção de Smartphones com YOLOv8
 
 Este projeto utiliza o modelo YOLOv8 para detectar smartphones em imagens.
+
 O objetivo é identificar automaticamente a presença de smartphones em fotos — por exemplo, em ambientes como lixões — e destacar o objeto detectado com um retângulo colorido.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 🧠 Objetivo do Projeto
@@ -16,9 +17,7 @@ project/
 
 │
 
-├── app/
-
-│   └── detect_smartphone.py     # Script para rodar a detecção
+│  detect_smartphone.py     # Script para rodar a detecção
 
 │
 
@@ -47,7 +46,9 @@ project/
 Antes de começar, você precisa ter instalado:
 
 Python 3.10+
+
 pip
+
 Ambiente virtual venv (recomendado)
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 🚀 Configuração do Ambiente
@@ -82,6 +83,7 @@ runs/detect/train/weights/
 O arquivo principal será:
 
 best.pt
+
 💡 Dica: Você pode ajustar o número de epochs conforme o desempenho desejado.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 🧪 Etapa 2 — Testar o Modelo
@@ -96,6 +98,7 @@ E execute o script:
 python app/detect_smartphone.py
 
 📸 Resultado
+
 As imagens processadas com detecções serão salvas em:
 
 results_detected/
@@ -103,7 +106,9 @@ results_detected/
 Cada imagem que tiver um smartphone detectado será destacada com um retângulo verde e exibirá o nível de confiança da detecção.
 Exemplo:
 
-✅ Smartphone detectado! Resultado salvo em: results_detected/detected_imagem.jpg
+✅ Smartphone detectado! 
+
+Resultado salvo em: results_detected/detected_imagem.jpg
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 🗃️ Pastas Grandes no Drive
 
