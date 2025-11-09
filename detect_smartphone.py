@@ -1,77 +1,92 @@
 # -*- coding: utf-8 -*-
 """
-Detecta smartphones em uma imagem usando o modelo YOLOv8 treinado.
-Destaca os smartphones detectados e salva a imagem final.
+Detecta smartphones em imagens usando o modelo YOLOv8.
+Aplica pré-processamento (Gaussian Blur + Laplacian)
+para realçar bordas e reduzir ruído antes da inferência.
+Gera um log CSV com as detecções.
 """
 
-import os
-from ultralytics import YOLO
 import cv2
+import os
+import csv
+from ultralytics import YOLO
 
-# --- Configurações Principais ---
-MODEL_PATH = "runs/detect/train/weights/best.pt"  # Caminho do modelo treinado
-INPUT_PATH = "test_images"  # Pasta com as imagens a testar
-OUTPUT_PATH = "results_detected"  # Pasta onde salvará as imagens com detecções
-CONFIDENCE_THRESHOLD = 0.4  # Confiança mínima (0.0 a 1.0)
+# --- CONFIGURAÇÕES ---
+MODEL_PATH = "runs/detect/train14/weights/best.pt"   # Caminho do modelo YOLO treinado
+INPUT_PATH = "test_images"                           # Pasta com imagens para teste
+OUTPUT_PATH = "results_detected"                     # Pasta para salvar imagens detectadas
+LOG_FILE = os.path.join(OUTPUT_PATH, "detections_log.csv")  # Caminho do log CSV
+CONFIDENCE_THRESHOLD = 0.3                        # Confiança mínima 
 
-# --- Garante que as pastas existem ---
+# --- GARANTE QUE AS PASTAS EXISTAM ---
 os.makedirs(INPUT_PATH, exist_ok=True)
 os.makedirs(OUTPUT_PATH, exist_ok=True)
-# --- Cria as pastas test_images e results_detected se ainda não existirem ---
 
-# --- Carrega o modelo ---
+# --- CARREGA O MODELO ---
 print(" Carregando modelo YOLO...")
 model = YOLO(MODEL_PATH)
 print(" Modelo carregado com sucesso!\n")
-# --- Inicializa o modelo YOLO com o arquivo best.pt ---
 
-# --- Carrega as imagens para testar ---
+# --- INICIALIZA O LOG CSV ---
+with open(LOG_FILE, mode="w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f)
+    writer.writerow(["Imagem", "Classe", "Confiança", "x1", "y1", "x2", "y2"])
+
+# --- LISTA AS IMAGENS PARA PROCESSAR ---
 image_files = [f for f in os.listdir(INPUT_PATH) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-# --- Cria uma lista de todas as imagens da pasta test_images ---
-
 
 if not image_files:
-    print(f"Nenhuma imagem encontrada em '{INPUT_PATH}'.")
-    print("Adicione imagens para testar.")
+    print(f" Nenhuma imagem encontrada em '{INPUT_PATH}'.")
+    print("Adicione imagens para testar e execute novamente.")
     exit()
-    # --- Encerra o programa se não houver imagens na pasta de entrada ---
 
-# --- Loop de detecção ---
+# --- LOOP PRINCIPAL ---
 for image_name in image_files:
     image_path = os.path.join(INPUT_PATH, image_name)
     print(f" Processando: {image_name}")
 
-    # --- Executa o modelo ---
-    results = model.predict(source=image_path, conf=CONFIDENCE_THRESHOLD, verbose=False)
-    """
-    Passa a imagem pelo modelo YOLO.
-    Retorna uma lista de objetos results, contendo as caixas, classes e confianças detectadas.
-    """
-
-    # --- Carrega imagem original ---
+    # --- CARREGAR IMAGEM ---
     image = cv2.imread(image_path)
     if image is None:
-        print(f"Erro ao carregar {image_name}")
+        print(f" Erro ao carregar {image_name}")
         continue
 
-    # --- Interpreta as detecções ---
+    # --- PRÉ-PROCESSAMENTO ---
+    # Gaussian Blur (suaviza ruídos da imagem)
+    blurred = cv2.GaussianBlur(image, (5, 5), 0)
+
+    # Conversão para tons de cinza
+    gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
+
+    # Filtro Laplaciano (realce de bordas)
+    laplace = cv2.Laplacian(gray, cv2.CV_64F)
+    laplace = cv2.convertScaleAbs(laplace)
+
+    # Combina imagem suavizada + bordas realçadas
+    image_preprocessed = cv2.addWeighted(blurred, 0.8, cv2.cvtColor(laplace, cv2.COLOR_GRAY2BGR), 0.4, 0)
+
+    # --- INFERÊNCIA YOLO ---
+    results = model.predict(source=image_preprocessed, conf=CONFIDENCE_THRESHOLD, verbose=False)
+
     detected = False
 
+    # --- PROCESSAR RESULTADOS ---
     for result in results:
         boxes = result.boxes.xyxy  # Coordenadas (x1, y1, x2, y2)
-        confidences = result.boxes.conf # Confiança de cada detecção
-        class_ids = result.boxes.cls # ID da classe (ex: 0 = smartphone)
+        confidences = result.boxes.conf
+        class_ids = result.boxes.cls
 
         for box, conf, cls_id in zip(boxes, confidences, class_ids):
             x1, y1, x2, y2 = map(int, box.tolist())
+            confidence = float(conf)
 
-            # Desenha retângulo e o texto
-            color = (0, 255, 0)  # Verde para smartphone
+            # --- DESENHAR RETÂNGULO ---
+            color = (0, 255, 0)  # Verde = smartphone
             cv2.rectangle(image, (x1, y1), (x2, y2), color, 3)
             cv2.putText(
                 image,
-                f"Smartphone {conf:.2f}",
-                (x1, y1 - 10),
+                f"Smartphone {confidence:.2f}",
+                (x1, max(30, y1 - 10)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
                 color,
@@ -79,27 +94,20 @@ for image_name in image_files:
             )
             detected = True
 
-    # --- Salva a imagem final ---
+            # --- REGISTRAR NO LOG ---
+            with open(LOG_FILE, mode="a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow([image_name, "Smartphone", confidence, x1, y1, x2, y2])
+
+    # --- SALVAR RESULTADO ---
     output_file = os.path.join(OUTPUT_PATH, f"detected_{image_name}")
     cv2.imwrite(output_file, image)
 
-    # --- Salvar log da detecção ---
-    log_path = os.path.join(OUTPUT_PATH, "detections_log.txt")
-    with open(log_path, "a", encoding="utf-8") as log:
-        if detected:
-            log.write(f"\n {image_name} → {len(detections_info)} smartphone(s) detectado(s):\n")
-            for info in detections_info:
-                log.write(f"   - {info}\n")
-        else:
-            log.write(f"\n {image_name} → Nenhum smartphone detectado (confiança mínima {CONFIDENCE_THRESHOLD})\n")
-
-
-    # --- Mostra o status da detecção ---
     if detected:
         print(f" Smartphone detectado! Resultado salvo em: {output_file}")
     else:
         print(f" Nenhum smartphone encontrado em: {image_name}")
 
-print("\n Detecção concluída!")
+print("\nDetecção concluída!")
 print(f"Imagens processadas salvas em: {OUTPUT_PATH}")
-# --- Mensagem final indicando sucesso do processo. ---
+print(f"Log de detecções salvo em: {LOG_FILE}")
